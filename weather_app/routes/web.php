@@ -1,9 +1,10 @@
 <?php
 
+use App\Models\Temperature;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-
+use Illuminate\Support\Facades\DB;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -16,16 +17,14 @@ use Inertia\Inertia;
 */
 
 Route::get('/', function () {
+    $query=DB::table('temperatures')->select(DB::raw('AVG(temperature) as temperature'), DB::raw('AVG(humidity) as humidity'), DB::raw('HOUR(sensing_date) as hours'))
+    ->groupby('hours')
+    ->where(DB::raw('DAY(created_at)'),DB::raw('DAY(NOW())'))->get();
+        //return $query;
     return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
+        'init_temperatures'=>$query,
+        ]);
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
 
 require __DIR__.'/auth.php';
